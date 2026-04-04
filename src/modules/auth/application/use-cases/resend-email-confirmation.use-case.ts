@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   IUserRepository,
@@ -8,10 +8,6 @@ import {
   IAuthAccountRepository,
   AUTH_ACCOUNT_REPOSITORY,
 } from "../../domain/repositories/auth-account.repository.interface";
-import {
-  IPasswordHasher,
-  PASSWORD_HASHER,
-} from "../../domain/services/password-hasher.interface";
 import {
   IEmailVerificationTokenRepository,
   EMAIL_VERIFICATION_TOKEN_REPOSITORY,
@@ -24,29 +20,19 @@ import {
   IEmailService,
   EMAIL_SERVICE,
 } from "../../../../core/email/email.interface";
-import { AuthProvider } from "../../domain/auth-account.entity";
 
-export interface RegisterUserCommand {
+export interface ResendEmailConfirmationCommand {
   email: string;
-  password: string;
-  name?: string;
-}
-
-export interface RegisterUserResult {
-  message: string;
-  email: string;
-  requiresEmailConfirmation: boolean;
 }
 
 @Injectable()
-export class RegisterUserUseCase {
+export class ResendEmailConfirmationUseCase {
   private readonly confirmationTokenTtlMs = 24 * 60 * 60 * 1000; // 24h
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(AUTH_ACCOUNT_REPOSITORY)
     private readonly authAccountRepo: IAuthAccountRepository,
-    @Inject(PASSWORD_HASHER) private readonly passwordHasher: IPasswordHasher,
     @Inject(EMAIL_VERIFICATION_TOKEN_REPOSITORY)
     private readonly tokenRepo: IEmailVerificationTokenRepository,
     @Inject(TOKEN_GENERATOR) private readonly tokenGenerator: ITokenGenerator,
@@ -54,33 +40,26 @@ export class RegisterUserUseCase {
     private readonly config: ConfigService,
   ) {}
 
-  async execute(command: RegisterUserCommand): Promise<RegisterUserResult> {
+  async execute(
+    command: ResendEmailConfirmationCommand,
+  ): Promise<{ message: string }> {
     const normalizedEmail = command.email.toLowerCase().trim();
 
-    const existing = await this.userRepo.findByEmail(normalizedEmail);
-    if (existing) {
-      throw new ConflictException({
-        code: "EMAIL_ALREADY_IN_USE",
-        message: "Email is already in use",
-      });
+    const user = await this.userRepo.findByEmail(normalizedEmail);
+
+    // Always return safe response to avoid user enumeration
+    if (!user || user.emailVerified) {
+      return {
+        message:
+          "If that email is registered and unconfirmed, a new confirmation email has been sent.",
+      };
     }
 
-    const passwordHash = await this.passwordHasher.hash(command.password);
-
-    const user = await this.userRepo.create({
-      email: normalizedEmail,
-      name: command.name,
-    });
-
-    await this.authAccountRepo.create({
-      userId: user.id,
-      provider: AuthProvider.CREDENTIALS,
-      providerAccountId: normalizedEmail,
-      passwordHash,
-    });
+    await this.tokenRepo.invalidateUnusedForUser(user.id);
 
     const { raw, hash } = await this.tokenGenerator.generate();
     const expiresAt = new Date(Date.now() + this.confirmationTokenTtlMs);
+
     await this.tokenRepo.create({
       userId: user.id,
       tokenHash: hash,
@@ -89,12 +68,12 @@ export class RegisterUserUseCase {
 
     const frontendUrl = this.config.get<string>("app.frontendUrl");
     const link = `${frontendUrl}/auth/confirm-email?token=${raw}`;
+
     await this.emailService.sendEmailConfirmation(user.email, user.name, link);
 
     return {
-      message: "Registration successful. Please confirm your email.",
-      email: user.email,
-      requiresEmailConfirmation: true,
+      message:
+        "If that email is registered and unconfirmed, a new confirmation email has been sent.",
     };
   }
 }
