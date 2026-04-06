@@ -23,7 +23,10 @@ import { CorrelationIdMiddleware } from "./core/common/correlation-id.middleware
         level: process.env.NODE_ENV !== "production" ? "debug" : "info",
         transport:
           process.env.NODE_ENV !== "production"
-            ? { target: "pino-pretty", options: { colorize: true, singleLine: true } }
+            ? {
+                target: "pino-pretty",
+                options: { colorize: true, singleLine: true },
+              }
             : undefined,
         autoLogging: false,
         redact: ["req.headers.authorization"],

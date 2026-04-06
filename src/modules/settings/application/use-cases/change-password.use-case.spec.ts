@@ -13,9 +13,7 @@ import {
   IPasswordHasher,
   PASSWORD_HASHER,
 } from "../../../auth/domain/services/password-hasher.interface";
-import {
-  REFRESH_TOKEN_REPOSITORY,
-} from "../../../auth/domain/repositories/refresh-token.repository.interface";
+import { REFRESH_TOKEN_REPOSITORY } from "../../../auth/domain/repositories/refresh-token.repository.interface";
 import { User } from "../../../users/domain/user.entity";
 import {
   AuthAccount,

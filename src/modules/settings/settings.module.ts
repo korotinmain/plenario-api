@@ -20,7 +20,10 @@ import { PrismaRefreshTokenRepository } from "../auth/infrastructure/prisma-refr
     ChangePasswordUseCase,
     { provide: AUTH_ACCOUNT_REPOSITORY, useClass: PrismaAuthAccountRepository },
     { provide: PASSWORD_HASHER, useClass: ArgonPasswordHasher },
-    { provide: REFRESH_TOKEN_REPOSITORY, useClass: PrismaRefreshTokenRepository },
+    {
+      provide: REFRESH_TOKEN_REPOSITORY,
+      useClass: PrismaRefreshTokenRepository,
+    },
   ],
 })
 export class SettingsModule {}
