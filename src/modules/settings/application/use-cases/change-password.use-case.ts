@@ -16,6 +16,10 @@ import {
   IPasswordHasher,
   PASSWORD_HASHER,
 } from "../../../auth/domain/services/password-hasher.interface";
+import {
+  IRefreshTokenRepository,
+  REFRESH_TOKEN_REPOSITORY,
+} from "../../../auth/domain/repositories/refresh-token.repository.interface";
 
 export interface ChangePasswordCommand {
   userId: string;
@@ -30,6 +34,8 @@ export class ChangePasswordUseCase {
     @Inject(AUTH_ACCOUNT_REPOSITORY)
     private readonly authAccountRepo: IAuthAccountRepository,
     @Inject(PASSWORD_HASHER) private readonly passwordHasher: IPasswordHasher,
+    @Inject(REFRESH_TOKEN_REPOSITORY)
+    private readonly refreshTokenRepo: IRefreshTokenRepository,
   ) {}
 
   async execute(command: ChangePasswordCommand): Promise<{ message: string }> {
@@ -64,6 +70,7 @@ export class ChangePasswordUseCase {
 
     const newHash = await this.passwordHasher.hash(command.newPassword);
     await this.authAccountRepo.updatePasswordHash(command.userId, newHash);
+    await this.refreshTokenRepo.deleteByUserId(command.userId);
 
     return { message: "Password updated successfully" };
   }

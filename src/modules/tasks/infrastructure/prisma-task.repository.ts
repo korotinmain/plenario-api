@@ -36,6 +36,8 @@ export class PrismaTaskRepository implements ITaskRepository {
     userId: string,
     filters?: TaskFilters,
   ): Promise<Task[]> {
+    const limit = Math.min(filters?.limit ?? 50, 100);
+    const page = Math.max(filters?.page ?? 1, 1);
     const rows = await this.prisma.task.findMany({
       where: {
         userId,
@@ -50,6 +52,8 @@ export class PrismaTaskRepository implements ITaskRepository {
         }),
       },
       orderBy: [{ createdAt: "desc" }],
+      take: limit,
+      skip: (page - 1) * limit,
     });
     return rows.map((r) => this.toEntity(r));
   }

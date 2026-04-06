@@ -3,6 +3,7 @@ import { ResetPasswordUseCase } from "./reset-password.use-case";
 import { IPasswordResetTokenRepository } from "../../domain/repositories/password-reset-token.repository.interface";
 import { IAuthAccountRepository } from "../../domain/repositories/auth-account.repository.interface";
 import { IPasswordHasher } from "../../domain/services/password-hasher.interface";
+import { IRefreshTokenRepository } from "../../domain/repositories/refresh-token.repository.interface";
 import { PasswordResetToken } from "../../domain/password-reset-token.entity";
 import { createHash } from "crypto";
 
@@ -29,6 +30,7 @@ describe("ResetPasswordUseCase", () => {
   let tokenRepo: jest.Mocked<IPasswordResetTokenRepository>;
   let authAccountRepo: jest.Mocked<IAuthAccountRepository>;
   let passwordHasher: jest.Mocked<IPasswordHasher>;
+  let refreshTokenRepo: jest.Mocked<IRefreshTokenRepository>;
 
   beforeEach(() => {
     tokenRepo = {
@@ -45,10 +47,18 @@ describe("ResetPasswordUseCase", () => {
       updatePasswordHash: jest.fn(),
     };
     passwordHasher = { hash: jest.fn(), verify: jest.fn() };
+    refreshTokenRepo = {
+      create: jest.fn().mockResolvedValue(undefined),
+      findByHash: jest.fn(),
+      deleteByUserId: jest.fn().mockResolvedValue(undefined),
+      deleteByHash: jest.fn().mockResolvedValue(undefined),
+      deleteExpired: jest.fn().mockResolvedValue(undefined),
+    };
     useCase = new ResetPasswordUseCase(
       tokenRepo,
       authAccountRepo,
       passwordHasher,
+      refreshTokenRepo,
     );
   });
 

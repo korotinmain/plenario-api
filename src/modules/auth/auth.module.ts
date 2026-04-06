@@ -15,6 +15,7 @@ import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use
 
 import { LoginWithGoogleUseCase } from "./application/use-cases/login-with-google.use-case";
 import { RefreshTokenUseCase } from "./application/use-cases/refresh-token.use-case";
+import { RefreshTokenCleanupJob } from "./application/jobs/refresh-token-cleanup.job";
 
 import { AUTH_ACCOUNT_REPOSITORY } from "./domain/repositories/auth-account.repository.interface";
 import { EMAIL_VERIFICATION_TOKEN_REPOSITORY } from "./domain/repositories/email-verification-token.repository.interface";
@@ -54,6 +55,7 @@ import { UsersModule } from "../users/users.module";
     ResetPasswordUseCase,
     LoginWithGoogleUseCase,
     RefreshTokenUseCase,
+    RefreshTokenCleanupJob,
 
     { provide: AUTH_ACCOUNT_REPOSITORY, useClass: PrismaAuthAccountRepository },
     {

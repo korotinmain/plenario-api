@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
+import { Throttle } from "@nestjs/throttler";
 import { RegisterUserUseCase } from "../application/use-cases/register-user.use-case";
 import { LoginUserUseCase } from "../application/use-cases/login-user.use-case";
 import { GetCurrentUserUseCase } from "../application/use-cases/get-current-user.use-case";
@@ -53,6 +54,7 @@ export class AuthController {
     private readonly config: ConfigService,
   ) {}
 
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
   register(@Body() dto: RegisterRequestDto) {
@@ -63,6 +65,7 @@ export class AuthController {
     });
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post("login")
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginRequestDto) {
@@ -97,6 +100,7 @@ export class AuthController {
     return this.resendEmailConfirmation.execute({ email: dto.email });
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post("forgot-password")
   @HttpCode(HttpStatus.OK)
   forgot(@Body() dto: ForgotPasswordRequestDto) {

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "../../../core/auth/guards/jwt-auth.guard";
@@ -22,6 +23,7 @@ import { UpdateProjectUseCase } from "../application/use-cases/update-project.us
 import { DeleteProjectUseCase } from "../application/use-cases/delete-project.use-case";
 import { CreateProjectRequestDto } from "./dtos/create-project-request.dto";
 import { UpdateProjectRequestDto } from "./dtos/update-project-request.dto";
+import { GetProjectsQueryDto } from "./dtos/get-projects-query.dto";
 
 @Controller("projects")
 @UseGuards(JwtAuthGuard)
@@ -49,8 +51,14 @@ export class ProjectsController {
   }
 
   @Get()
-  list(@CurrentUser() user: CurrentUserPayload) {
-    return this.getProjectsList.execute(user.userId);
+  list(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query() query: GetProjectsQueryDto,
+  ) {
+    return this.getProjectsList.execute(user.userId, {
+      page: query.page,
+      limit: query.limit,
+    });
   }
 
   @Get(":id")

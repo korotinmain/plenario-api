@@ -4,6 +4,7 @@ import {
   IProjectRepository,
   CreateProjectData,
   UpdateProjectData,
+  ProjectFilters,
 } from "../domain/repositories/project.repository.interface";
 import { Project } from "../domain/project.entity";
 
@@ -23,10 +24,14 @@ export class PrismaProjectRepository implements IProjectRepository {
     return this.toEntity(row);
   }
 
-  async findManyByUserId(userId: string): Promise<Project[]> {
+  async findManyByUserId(userId: string, filters?: ProjectFilters): Promise<Project[]> {
+    const limit = Math.min(filters?.limit ?? 50, 100);
+    const page = Math.max(filters?.page ?? 1, 1);
     const rows = await this.prisma.project.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: (page - 1) * limit,
     });
     return rows.map((r) => this.toEntity(r));
   }

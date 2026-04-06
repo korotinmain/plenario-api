@@ -13,11 +13,16 @@ export interface UpdateProjectData {
   color?: string | null;
 }
 
+export interface ProjectFilters {
+  page?: number;
+  limit?: number;
+}
+
 export const PROJECT_REPOSITORY = Symbol("PROJECT_REPOSITORY");
 
 export interface IProjectRepository {
   create(data: CreateProjectData): Promise<Project>;
-  findManyByUserId(userId: string): Promise<Project[]>;
+  findManyByUserId(userId: string, filters?: ProjectFilters): Promise<Project[]>;
   findByIdAndUserId(id: string, userId: string): Promise<Project | null>;
   updateByIdAndUserId(
     id: string,

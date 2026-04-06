@@ -24,6 +24,8 @@ export interface TaskFilters {
   projectId?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  page?: number;
+  limit?: number;
 }
 
 export const TASK_REPOSITORY = Symbol("TASK_REPOSITORY");

@@ -82,6 +82,8 @@ export class TasksController {
       projectId: query.projectId,
       status: query.status,
       priority: query.priority,
+      page: query.page,
+      limit: query.limit,
     });
   }
 

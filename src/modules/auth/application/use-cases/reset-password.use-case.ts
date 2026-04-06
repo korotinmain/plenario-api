@@ -17,6 +17,10 @@ import {
   IPasswordHasher,
   PASSWORD_HASHER,
 } from "../../domain/services/password-hasher.interface";
+import {
+  IRefreshTokenRepository,
+  REFRESH_TOKEN_REPOSITORY,
+} from "../../domain/repositories/refresh-token.repository.interface";
 
 export interface ResetPasswordCommand {
   token: string;
@@ -31,6 +35,8 @@ export class ResetPasswordUseCase {
     @Inject(AUTH_ACCOUNT_REPOSITORY)
     private readonly authAccountRepo: IAuthAccountRepository,
     @Inject(PASSWORD_HASHER) private readonly passwordHasher: IPasswordHasher,
+    @Inject(REFRESH_TOKEN_REPOSITORY)
+    private readonly refreshTokenRepo: IRefreshTokenRepository,
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<{ message: string }> {
@@ -52,6 +58,7 @@ export class ResetPasswordUseCase {
     );
     await this.tokenRepo.markUsed(record.id);
     await this.tokenRepo.invalidateUnusedForUser(record.userId);
+    await this.refreshTokenRepo.deleteByUserId(record.userId);
 
     return { message: "Password has been reset successfully" };
   }

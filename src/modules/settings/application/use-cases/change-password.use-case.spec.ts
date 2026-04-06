@@ -13,6 +13,9 @@ import {
   IPasswordHasher,
   PASSWORD_HASHER,
 } from "../../../auth/domain/services/password-hasher.interface";
+import {
+  REFRESH_TOKEN_REPOSITORY,
+} from "../../../auth/domain/repositories/refresh-token.repository.interface";
 import { User } from "../../../users/domain/user.entity";
 import {
   AuthAccount,
@@ -64,6 +67,10 @@ describe("ChangePasswordUseCase", () => {
         {
           provide: PASSWORD_HASHER,
           useValue: { verify: jest.fn(), hash: jest.fn() },
+        },
+        {
+          provide: REFRESH_TOKEN_REPOSITORY,
+          useValue: { deleteByUserId: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();
