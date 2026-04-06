@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { CoreConfigModule } from "./core/config/config.module";
@@ -10,6 +10,7 @@ import { ProjectsModule } from "./modules/projects/projects.module";
 import { TasksModule } from "./modules/tasks/tasks.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { SettingsModule } from "./modules/settings/settings.module";
+import { CorrelationIdMiddleware } from "./core/common/correlation-id.middleware";
 
 @Module({
   imports: [
@@ -26,4 +27,8 @@ import { SettingsModule } from "./modules/settings/settings.module";
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
+  }
+}

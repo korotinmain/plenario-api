@@ -7,8 +7,11 @@ import { GlobalExceptionFilter } from "./core/errors/global-exception.filter";
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger("Bootstrap");
+  const isDev = process.env.NODE_ENV !== "production";
   const app = await NestFactory.create(AppModule, {
-    logger: ["error", "warn", "log", "debug"],
+    logger: isDev
+      ? ["error", "warn", "log", "debug"]
+      : ["error", "warn", "log"],
   });
 
   app.use(helmet());
@@ -30,14 +33,16 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle("Plenario API")
-    .setDescription("Plenario personal planning app — REST API")
-    .setVersion("1.0")
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup("api/docs", app, document);
+  if (isDev) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle("Plenario API")
+      .setDescription("Plenario personal planning app — REST API")
+      .setVersion("1.0")
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup("api/docs", app, document);
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

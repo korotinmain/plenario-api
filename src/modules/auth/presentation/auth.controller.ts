@@ -21,12 +21,14 @@ import { ResendEmailConfirmationUseCase } from "../application/use-cases/resend-
 import { ForgotPasswordUseCase } from "../application/use-cases/forgot-password.use-case";
 import { ResetPasswordUseCase } from "../application/use-cases/reset-password.use-case";
 import { LoginWithGoogleUseCase } from "../application/use-cases/login-with-google.use-case";
+import { RefreshTokenUseCase } from "../application/use-cases/refresh-token.use-case";
 import { RegisterRequestDto } from "./dtos/register-request.dto";
 import { LoginRequestDto } from "./dtos/login-request.dto";
 import { ConfirmEmailQueryDto } from "./dtos/confirm-email-query.dto";
 import { ResendConfirmationRequestDto } from "./dtos/resend-confirmation-request.dto";
 import { ForgotPasswordRequestDto } from "./dtos/forgot-password-request.dto";
 import { ResetPasswordRequestDto } from "./dtos/reset-password-request.dto";
+import { RefreshTokenRequestDto } from "./dtos/refresh-token-request.dto";
 import { JwtAuthGuard } from "../../../core/auth/guards/jwt-auth.guard";
 import { GoogleAuthGuard } from "../../../core/auth/guards/google-auth.guard";
 import {
@@ -47,6 +49,7 @@ export class AuthController {
     private readonly forgotPassword: ForgotPasswordUseCase,
     private readonly resetPassword: ResetPasswordUseCase,
     private readonly loginWithGoogle: LoginWithGoogleUseCase,
+    private readonly refreshToken: RefreshTokenUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -78,8 +81,8 @@ export class AuthController {
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  logout() {
-    return this.logoutUser.execute();
+  logout(@CurrentUser() user: CurrentUserPayload) {
+    return this.logoutUser.execute(user.userId);
   }
 
   @Get("confirm-email")
@@ -109,6 +112,12 @@ export class AuthController {
     });
   }
 
+  @Post("refresh")
+  @HttpCode(HttpStatus.OK)
+  refresh(@Body() dto: RefreshTokenRequestDto) {
+    return this.refreshToken.execute({ refreshToken: dto.refreshToken });
+  }
+
   @Get("google")
   @UseGuards(GoogleAuthGuard)
   googleLogin(): void {
@@ -132,7 +141,6 @@ export class AuthController {
     const frontendUrl = this.config.get<string>("app.frontendUrl");
     const params = new URLSearchParams({
       accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
     });
     res.redirect(`${frontendUrl}/auth/google/callback?${params.toString()}`);
   }

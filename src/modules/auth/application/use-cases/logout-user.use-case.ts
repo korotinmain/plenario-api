@@ -1,9 +1,18 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import {
+  IRefreshTokenRepository,
+  REFRESH_TOKEN_REPOSITORY,
+} from "../../domain/repositories/refresh-token.repository.interface";
 
 @Injectable()
 export class LogoutUserUseCase {
-  execute(): { message: string } {
-    // v1 baseline: client discards tokens. Server-side invalidation added when refresh token persistence is implemented.
+  constructor(
+    @Inject(REFRESH_TOKEN_REPOSITORY)
+    private readonly refreshTokenRepo: IRefreshTokenRepository,
+  ) {}
+
+  async execute(userId: string): Promise<{ message: string }> {
+    await this.refreshTokenRepo.deleteByUserId(userId);
     return { message: "Logged out successfully" };
   }
 }

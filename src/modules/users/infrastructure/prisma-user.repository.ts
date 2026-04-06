@@ -27,6 +27,9 @@ export class PrismaUserRepository implements IUserRepository {
         email: data.email,
         name: data.name ?? null,
         timezone: data.timezone ?? "UTC",
+        settings: {
+          create: { timezone: data.timezone ?? "UTC" },
+        },
       },
     });
     return this.toEntity(row);

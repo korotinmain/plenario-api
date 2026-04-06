@@ -37,6 +37,7 @@ model User {
   authAccounts            AuthAccount[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens     PasswordResetToken[]
+  refreshTokens           RefreshToken[]
   projects                Project[]
   tasks                   Task[]
   settings                UserSettings?
@@ -135,4 +136,17 @@ model UserSettings {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }

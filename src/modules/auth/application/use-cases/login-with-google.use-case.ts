@@ -12,6 +12,12 @@ import {
   JWT_TOKEN_SERVICE,
   TokenPair,
 } from "../../domain/services/jwt-token.interface";
+import {
+  IRefreshTokenRepository,
+  REFRESH_TOKEN_REPOSITORY,
+} from "../../domain/repositories/refresh-token.repository.interface";
+import { storeRefreshToken } from "../helpers/store-refresh-token.helper";
+import { ConfigService } from "@nestjs/config";
 import { AuthProvider } from "../../domain/auth-account.entity";
 import { User } from "../../../users/domain/user.entity";
 
@@ -43,6 +49,9 @@ export class LoginWithGoogleUseCase {
     private readonly authAccountRepo: IAuthAccountRepository,
     @Inject(JWT_TOKEN_SERVICE)
     private readonly jwtTokenService: IJwtTokenService,
+    @Inject(REFRESH_TOKEN_REPOSITORY)
+    private readonly refreshTokenRepo: IRefreshTokenRepository,
+    private readonly config: ConfigService,
   ) {}
 
   async execute(
@@ -118,6 +127,15 @@ export class LoginWithGoogleUseCase {
     const tokens: TokenPair = await this.jwtTokenService.generateTokenPair(
       user.id,
       user.email,
+    );
+
+    const expiresIn =
+      this.config.get<string>("auth.jwtRefreshExpiresIn") ?? "7d";
+    await storeRefreshToken(
+      this.refreshTokenRepo,
+      user.id,
+      tokens.refreshToken,
+      expiresIn,
     );
 
     return {

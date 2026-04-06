@@ -12,6 +12,7 @@ export interface ErrorResponse {
   code: string;
   message: string;
   details?: unknown;
+  requestId: string;
   timestamp: string;
 }
 
@@ -57,6 +58,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const body: ErrorResponse = {
       code,
       message,
+      requestId: (request.headers["x-request-id"] as string) ?? "unknown",
       timestamp: new Date().toISOString(),
     };
 
@@ -64,7 +66,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       body.details = details;
     }
 
-    this.logger.warn(`[${request.method}] ${request.url} → ${status} ${code}`);
+    this.logger.warn(
+      `[${request.method}] ${request.url} → ${status} ${code} [reqId=${body.requestId}]`,
+    );
 
     response.status(status).json(body);
   }

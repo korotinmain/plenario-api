@@ -4,6 +4,8 @@ import { IUserRepository } from "../../../users/domain/repositories/user.reposit
 import { IAuthAccountRepository } from "../../domain/repositories/auth-account.repository.interface";
 import { IPasswordHasher } from "../../domain/services/password-hasher.interface";
 import { IJwtTokenService } from "../../domain/services/jwt-token.interface";
+import { IRefreshTokenRepository } from "../../domain/repositories/refresh-token.repository.interface";
+import { ConfigService } from "@nestjs/config";
 import { User } from "../../../users/domain/user.entity";
 import { AuthAccount, AuthProvider } from "../../domain/auth-account.entity";
 
@@ -36,6 +38,8 @@ describe("LoginUserUseCase", () => {
   let authAccountRepo: jest.Mocked<IAuthAccountRepository>;
   let passwordHasher: jest.Mocked<IPasswordHasher>;
   let jwtTokenService: jest.Mocked<IJwtTokenService>;
+  let refreshTokenRepo: jest.Mocked<IRefreshTokenRepository>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     userRepo = {
@@ -55,13 +59,28 @@ describe("LoginUserUseCase", () => {
     };
 
     passwordHasher = { hash: jest.fn(), verify: jest.fn() };
-    jwtTokenService = { generateTokenPair: jest.fn() };
+    jwtTokenService = {
+      generateTokenPair: jest.fn(),
+      verifyRefreshToken: jest.fn(),
+    };
+    refreshTokenRepo = {
+      create: jest.fn().mockResolvedValue(undefined),
+      findByHash: jest.fn(),
+      deleteByUserId: jest.fn(),
+      deleteByHash: jest.fn(),
+      deleteExpired: jest.fn(),
+    };
+    configService = {
+      get: jest.fn().mockReturnValue("7d"),
+    } as unknown as jest.Mocked<ConfigService>;
 
     useCase = new LoginUserUseCase(
       userRepo,
       authAccountRepo,
       passwordHasher,
       jwtTokenService,
+      refreshTokenRepo,
+      configService,
     );
   });
 

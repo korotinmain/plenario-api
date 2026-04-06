@@ -14,10 +14,12 @@ import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.u
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use-case";
 
 import { LoginWithGoogleUseCase } from "./application/use-cases/login-with-google.use-case";
+import { RefreshTokenUseCase } from "./application/use-cases/refresh-token.use-case";
 
 import { AUTH_ACCOUNT_REPOSITORY } from "./domain/repositories/auth-account.repository.interface";
 import { EMAIL_VERIFICATION_TOKEN_REPOSITORY } from "./domain/repositories/email-verification-token.repository.interface";
 import { PASSWORD_RESET_TOKEN_REPOSITORY } from "./domain/repositories/password-reset-token.repository.interface";
+import { REFRESH_TOKEN_REPOSITORY } from "./domain/repositories/refresh-token.repository.interface";
 import { PASSWORD_HASHER } from "./domain/services/password-hasher.interface";
 import { JWT_TOKEN_SERVICE } from "./domain/services/jwt-token.interface";
 import { TOKEN_GENERATOR } from "./domain/services/token-generator.interface";
@@ -28,6 +30,7 @@ import { PrismaPasswordResetTokenRepository } from "./infrastructure/prisma-pass
 import { ArgonPasswordHasher } from "./infrastructure/argon-password-hasher.service";
 import { JwtTokenService } from "./infrastructure/jwt-token.service";
 import { CryptoTokenGenerator } from "./infrastructure/crypto-token-generator.service";
+import { PrismaRefreshTokenRepository } from "./infrastructure/prisma-refresh-token.repository";
 
 import { JwtStrategy } from "../../core/auth/strategies/jwt.strategy";
 import { GoogleStrategy } from "../../core/auth/strategies/google.strategy";
@@ -50,6 +53,7 @@ import { UsersModule } from "../users/users.module";
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     LoginWithGoogleUseCase,
+    RefreshTokenUseCase,
 
     { provide: AUTH_ACCOUNT_REPOSITORY, useClass: PrismaAuthAccountRepository },
     {
@@ -63,6 +67,10 @@ import { UsersModule } from "../users/users.module";
     { provide: PASSWORD_HASHER, useClass: ArgonPasswordHasher },
     { provide: JWT_TOKEN_SERVICE, useClass: JwtTokenService },
     { provide: TOKEN_GENERATOR, useClass: CryptoTokenGenerator },
+    {
+      provide: REFRESH_TOKEN_REPOSITORY,
+      useClass: PrismaRefreshTokenRepository,
+    },
 
     JwtStrategy,
     GoogleStrategy,

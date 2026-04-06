@@ -6,6 +6,8 @@ import {
 import { IUserRepository } from "../../../users/domain/repositories/user.repository.interface";
 import { IAuthAccountRepository } from "../../domain/repositories/auth-account.repository.interface";
 import { IJwtTokenService } from "../../domain/services/jwt-token.interface";
+import { IRefreshTokenRepository } from "../../domain/repositories/refresh-token.repository.interface";
+import { ConfigService } from "@nestjs/config";
 import { User } from "../../../users/domain/user.entity";
 import { AuthAccount, AuthProvider } from "../../domain/auth-account.entity";
 
@@ -46,6 +48,8 @@ describe("LoginWithGoogleUseCase", () => {
   let userRepo: jest.Mocked<IUserRepository>;
   let authAccountRepo: jest.Mocked<IAuthAccountRepository>;
   let jwtTokenService: jest.Mocked<IJwtTokenService>;
+  let refreshTokenRepo: jest.Mocked<IRefreshTokenRepository>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     userRepo = {
@@ -64,12 +68,27 @@ describe("LoginWithGoogleUseCase", () => {
       updatePasswordHash: jest.fn(),
     };
 
-    jwtTokenService = { generateTokenPair: jest.fn() };
+    jwtTokenService = {
+      generateTokenPair: jest.fn(),
+      verifyRefreshToken: jest.fn(),
+    };
+    refreshTokenRepo = {
+      create: jest.fn().mockResolvedValue(undefined),
+      findByHash: jest.fn(),
+      deleteByUserId: jest.fn(),
+      deleteByHash: jest.fn(),
+      deleteExpired: jest.fn(),
+    };
+    configService = {
+      get: jest.fn().mockReturnValue("7d"),
+    } as unknown as jest.Mocked<ConfigService>;
 
     useCase = new LoginWithGoogleUseCase(
       userRepo,
       authAccountRepo,
       jwtTokenService,
+      refreshTokenRepo,
+      configService,
     );
   });
 
