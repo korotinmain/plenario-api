@@ -1,6 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { GlobalExceptionFilter } from "./core/errors/global-exception.filter";
 
@@ -9,6 +10,8 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: ["error", "warn", "log", "debug"],
   });
+
+  app.use(helmet());
 
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? "http://localhost:4200",

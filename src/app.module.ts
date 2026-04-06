@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
 import { CoreConfigModule } from "./core/config/config.module";
 import { DatabaseModule } from "./core/database/database.module";
 import { EmailModule } from "./core/email/email.module";
@@ -11,6 +13,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     CoreConfigModule,
     DatabaseModule,
     EmailModule,
@@ -21,5 +24,6 @@ import { SettingsModule } from "./modules/settings/settings.module";
     DashboardModule,
     SettingsModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

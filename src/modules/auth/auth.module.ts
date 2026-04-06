@@ -34,7 +34,11 @@ import { GoogleStrategy } from "../../core/auth/strategies/google.strategy";
 import { UsersModule } from "../users/users.module";
 
 @Module({
-  imports: [PassportModule, JwtModule.register({}), UsersModule],
+  imports: [
+    PassportModule.register({ session: false }),
+    JwtModule.register({}),
+    UsersModule,
+  ],
   controllers: [AuthController],
   providers: [
     RegisterUserUseCase,
