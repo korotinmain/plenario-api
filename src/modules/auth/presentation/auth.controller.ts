@@ -6,8 +6,12 @@ import {
   HttpStatus,
   Post,
   Query,
+  Req,
+  Res,
   UseGuards,
 } from "@nestjs/common";
+import { Request, Response } from "express";
+import { ConfigService } from "@nestjs/config";
 import { RegisterUserUseCase } from "../application/use-cases/register-user.use-case";
 import { LoginUserUseCase } from "../application/use-cases/login-user.use-case";
 import { GetCurrentUserUseCase } from "../application/use-cases/get-current-user.use-case";
@@ -16,6 +20,7 @@ import { ConfirmEmailUseCase } from "../application/use-cases/confirm-email.use-
 import { ResendEmailConfirmationUseCase } from "../application/use-cases/resend-email-confirmation.use-case";
 import { ForgotPasswordUseCase } from "../application/use-cases/forgot-password.use-case";
 import { ResetPasswordUseCase } from "../application/use-cases/reset-password.use-case";
+import { LoginWithGoogleUseCase } from "../application/use-cases/login-with-google.use-case";
 import { RegisterRequestDto } from "./dtos/register-request.dto";
 import { LoginRequestDto } from "./dtos/login-request.dto";
 import { ConfirmEmailQueryDto } from "./dtos/confirm-email-query.dto";
@@ -23,10 +28,12 @@ import { ResendConfirmationRequestDto } from "./dtos/resend-confirmation-request
 import { ForgotPasswordRequestDto } from "./dtos/forgot-password-request.dto";
 import { ResetPasswordRequestDto } from "./dtos/reset-password-request.dto";
 import { JwtAuthGuard } from "../../../core/auth/guards/jwt-auth.guard";
+import { GoogleAuthGuard } from "../../../core/auth/guards/google-auth.guard";
 import {
   CurrentUser,
   CurrentUserPayload,
 } from "../../../core/auth/decorators/current-user.decorator";
+import { GoogleProfile } from "../../../core/auth/strategies/google.strategy";
 
 @Controller("auth")
 export class AuthController {
@@ -39,6 +46,8 @@ export class AuthController {
     private readonly resendEmailConfirmation: ResendEmailConfirmationUseCase,
     private readonly forgotPassword: ForgotPasswordUseCase,
     private readonly resetPassword: ResetPasswordUseCase,
+    private readonly loginWithGoogle: LoginWithGoogleUseCase,
+    private readonly config: ConfigService,
   ) {}
 
   @Post("register")
@@ -98,5 +107,33 @@ export class AuthController {
       token: dto.token,
       newPassword: dto.newPassword,
     });
+  }
+
+  @Get("google")
+  @UseGuards(GoogleAuthGuard)
+  googleLogin(): void {
+    // Passport redirects to Google — no body needed
+  }
+
+  @Get("google/callback")
+  @UseGuards(GoogleAuthGuard)
+  async googleCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const profile = req.user as GoogleProfile;
+    const result = await this.loginWithGoogle.execute({
+      googleId: profile.googleId,
+      email: profile.email,
+      name: profile.name,
+      avatarUrl: profile.avatarUrl,
+    });
+
+    const frontendUrl = this.config.get<string>("app.frontendUrl");
+    const params = new URLSearchParams({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    });
+    res.redirect(`${frontendUrl}/auth/google/callback?${params.toString()}`);
   }
 }

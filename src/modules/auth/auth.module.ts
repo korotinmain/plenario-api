@@ -13,6 +13,8 @@ import { ResendEmailConfirmationUseCase } from "./application/use-cases/resend-e
 import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.use-case";
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use-case";
 
+import { LoginWithGoogleUseCase } from "./application/use-cases/login-with-google.use-case";
+
 import { AUTH_ACCOUNT_REPOSITORY } from "./domain/repositories/auth-account.repository.interface";
 import { EMAIL_VERIFICATION_TOKEN_REPOSITORY } from "./domain/repositories/email-verification-token.repository.interface";
 import { PASSWORD_RESET_TOKEN_REPOSITORY } from "./domain/repositories/password-reset-token.repository.interface";
@@ -28,6 +30,7 @@ import { JwtTokenService } from "./infrastructure/jwt-token.service";
 import { CryptoTokenGenerator } from "./infrastructure/crypto-token-generator.service";
 
 import { JwtStrategy } from "../../core/auth/strategies/jwt.strategy";
+import { GoogleStrategy } from "../../core/auth/strategies/google.strategy";
 import { UsersModule } from "../users/users.module";
 
 @Module({
@@ -42,6 +45,7 @@ import { UsersModule } from "../users/users.module";
     ResendEmailConfirmationUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
+    LoginWithGoogleUseCase,
 
     { provide: AUTH_ACCOUNT_REPOSITORY, useClass: PrismaAuthAccountRepository },
     {
@@ -57,6 +61,7 @@ import { UsersModule } from "../users/users.module";
     { provide: TOKEN_GENERATOR, useClass: CryptoTokenGenerator },
 
     JwtStrategy,
+    GoogleStrategy,
   ],
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from "@nestjs/common";
+import { ConflictException, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   IUserRepository,
@@ -41,6 +41,7 @@ export interface RegisterUserResult {
 @Injectable()
 export class RegisterUserUseCase {
   private readonly confirmationTokenTtlMs = 24 * 60 * 60 * 1000; // 24h
+  private readonly logger = new Logger(RegisterUserUseCase.name);
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: IUserRepository,
@@ -89,7 +90,19 @@ export class RegisterUserUseCase {
 
     const frontendUrl = this.config.get<string>("app.frontendUrl");
     const link = `${frontendUrl}/auth/confirm-email?token=${raw}`;
-    await this.emailService.sendEmailConfirmation(user.email, user.name, link);
+    try {
+      await this.emailService.sendEmailConfirmation(
+        user.email,
+        user.name,
+        link,
+      );
+    } catch (err: unknown) {
+      this.logger.warn(
+        `Failed to send confirmation email to ${user.email}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
 
     return {
       message: "Registration successful. Please confirm your email.",
